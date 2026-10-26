@@ -1,0 +1,1809 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CodeLens &bull; Architectural Codebase Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --bg-card: rgba(17, 24, 39, 0.78);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --bg-card-active: rgba(49, 46, 129, 0.35);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-accent: rgba(99, 102, 241, 0.4);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 55%),
+        radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(99, 102, 241, 0.12);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 0.85rem;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .brand-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #818cf8;
+      box-shadow: 0 0 8px #818cf8;
+    }
+
+    h1 {
+      font-size: 2.75rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ffffff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 620px;
+      margin: 0 auto 1.5rem;
+    }
+
+    /* Input Card */
+    .search-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1rem;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+      max-width: 780px;
+      margin: 0 auto 1.5rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-card:focus-within {
+      border-color: var(--border-accent);
+      box-shadow: 0 20px 45px -10px rgba(99, 102, 241, 0.25);
+    }
+
+    form {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .input-wrapper {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    input#url {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.85rem 1rem 0.85rem 2.85rem;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 1rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    input#url:focus {
+      border-color: var(--primary);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    input#url::placeholder {
+      color: var(--text-dim);
+    }
+
+    button#submit-btn {
+      padding: 0.85rem 1.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary-gradient);
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+    }
+
+    button#submit-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+    }
+
+    button#submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Status Bar */
+    #status-container {
+      max-width: 780px;
+      margin: 0 auto 2rem;
+      min-height: 2.5rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 1.25rem;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .status-badge.loading .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(99, 102, 241, 0.3);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .status-badge.error {
+      background: rgba(244, 63, 94, 0.1);
+      border-color: rgba(244, 63, 94, 0.3);
+      color: #fca5a5;
+    }
+
+    .status-badge.success {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Main Workspace Layout */
+    .workspace {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 900px) {
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Left: File Explorer */
+    .file-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .count-pill {
+      font-size: 0.75rem;
+      padding: 0.15rem 0.55rem;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 9999px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .filter-input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.85rem;
+      color: #fff;
+      font-size: 0.85rem;
+      outline: none;
+      font-family: var(--font-sans);
+    }
+
+    .filter-input:focus {
+      border-color: var(--border-accent);
+    }
+
+    .file-list {
+      list-style: none;
+      max-height: 65vh;
+      overflow-y: auto;
+      padding-right: 0.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .file-list::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .file-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    .file-row {
+      padding: 0.65rem 0.85rem;
+      border-radius: 10px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .file-row:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
+    .file-row.active {
+      background: var(--bg-card-active);
+      border-color: var(--border-accent);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+    }
+
+    .lang-pill {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 0.45rem;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+    }
+
+    .lang-pill.python {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .lang-pill.javascript {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .lang-pill.typescript {
+      background: rgba(6, 182, 212, 0.15);
+      color: #67e8f9;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    .file-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-path {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Right: Details Pane */
+    .details-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      min-height: 480px;
+    }
+
+    .empty-state {
+      height: 100%;
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: var(--text-dim);
+      gap: 1rem;
+    }
+
+    .empty-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+    }
+
+    /* Step 4 & 5 User Flow States */
+    .selection-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 1.5rem;
+      gap: 1.5rem;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .preview-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.8rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 9999px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--accent-cyan);
+    }
+
+    .preview-filename {
+      font-size: 2rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .preview-path {
+      font-family: var(--font-mono);
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+    .btn-show-details {
+      padding: 0.95rem 2.2rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--primary-gradient);
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
+      transition: all 0.2s;
+    }
+
+    .btn-show-details:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(99, 102, 241, 0.55);
+    }
+
+    /* Detailed View Section */
+    .file-details-view {
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .details-top {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .details-title-group h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .details-path-copy {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.6);
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    /* Summary Card */
+    .summary-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(6, 182, 212, 0.05) 100%);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      position: relative;
+    }
+
+    .card-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #a5b4fc;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .summary-text {
+      font-size: 1.02rem;
+      line-height: 1.7;
+      color: #e2e8f0;
+    }
+
+    /* How Routed Banner */
+    .route-banner {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+    }
+
+    .chain-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.5rem;
+    }
+
+    .chain-node {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+    }
+
+    .chain-node.target {
+      background: rgba(99, 102, 241, 0.25);
+      border-color: var(--primary);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .chain-arrow {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    .route-explanation {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    /* Dependencies Grid */
+    .deps-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 750px) {
+      .deps-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .dep-block {
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .dep-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dep-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .dep-item {
+      padding: 0.5rem 0.75rem;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .dep-item:hover {
+      background: rgba(99, 102, 241, 0.12);
+      border-color: rgba(99, 102, 241, 0.3);
+    }
+
+    .dep-item-path {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #cbd5e1;
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    .dep-item-symbols {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+    }
+
+    .dep-empty {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      font-style: italic;
+      padding: 0.5rem 0;
+    }
+
+    /* External Libraries */
+    .external-badge-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.25rem;
+    }
+
+    .ext-badge {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      padding: 0.2rem 0.55rem;
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.25);
+      border-radius: 6px;
+      color: #7dd3fc;
+    }
+
+    /* Key Parts Table */
+    .parts-section {
+      background: rgba(15, 23, 42, 0.45);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+    }
+
+    .parts-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.75rem;
+      font-size: 0.88rem;
+    }
+
+    .parts-table th {
+      text-align: left;
+      padding: 0.6rem 0.75rem;
+      color: var(--text-dim);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .parts-table td {
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #e2e8f0;
+      vertical-align: middle;
+    }
+
+    .sym-name {
+      font-family: var(--font-mono);
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .kind-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.5rem;
+      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .kind-pill.class {
+      background: rgba(168, 85, 247, 0.15);
+      color: #c084fc;
+      border: 1px solid rgba(168, 85, 247, 0.3);
+    }
+
+    .kind-pill.function {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .kind-pill.method {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .line-tag {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-dim);
+    }
+
+    .usage-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      font-size: 0.75rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #6ee7b7;
+      font-weight: 600;
+    }
+
+    .usage-pill.internal {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: var(--text-dim);
+    }
+
+    /* Top Nav */
+    .top-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.25rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #fff;
+    }
+
+    .nav-auth-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .btn-auth-nav {
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #c7d2fe;
+      padding: 0.45rem 1rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-auth-nav:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .user-pill {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 0.3rem 0.75rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      border-radius: 9999px;
+      color: #e2e8f0;
+    }
+
+    .btn-link {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      transition: color 0.15s;
+    }
+
+    .btn-link:hover {
+      color: #fff;
+    }
+
+    .btn-link.danger:hover {
+      color: #f87171;
+    }
+
+    /* Modal Backdrop & Card */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(5, 8, 15, 0.75);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+    }
+
+    .modal-card {
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid rgba(99, 102, 241, 0.35);
+      border-radius: 18px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+      width: 100%;
+      max-width: 420px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      animation: modalIn 0.2s ease-out;
+    }
+
+    @keyframes modalIn {
+      from {
+        transform: scale(0.95);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.2rem;
+      gap: 0.2rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.4rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #fff;
+    }
+
+    .auth-error-msg {
+      background: rgba(244, 63, 94, 0.15);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      color: #fca5a5;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+    }
+
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 0.25rem;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      margin-bottom: 0.85rem;
+      width: 100%;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .form-group input {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+    }
+
+    .btn-auth-submit {
+      width: 100%;
+      background: var(--primary-gradient);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <!-- Top Navigation Bar -->
+    <nav class="top-nav">
+      <div class="nav-brand">
+        <span style="color: var(--primary);">✦</span> CodeLens Cloud
+      </div>
+      <div class="nav-auth-area">
+        <div id="auth-nav-guest">
+          <button type="button" class="btn-auth-nav" id="btn-open-auth">Log In / Sign Up</button>
+        </div>
+        <div id="auth-nav-user" style="display: none; align-items: center; gap: 0.75rem;">
+          <button type="button" class="btn-link" id="btn-my-repos">📂 My Repositories</button>
+          <span class="user-pill" id="user-email-display">user@example.com</span>
+          <button type="button" class="btn-link danger" id="btn-logout">Log Out</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="modal-backdrop" hidden>
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-tabs">
+            <button type="button" class="tab-btn active" id="tab-login">Log In</button>
+            <button type="button" class="tab-btn" id="tab-signup">Sign Up</button>
+          </div>
+          <button type="button" class="modal-close" id="btn-close-auth">&times;</button>
+        </div>
+        <form id="auth-form" class="auth-form">
+          <div id="auth-error" class="auth-error-msg" hidden></div>
+          <div class="form-group">
+            <label for="auth-email">Email Address</label>
+            <input type="email" id="auth-email" placeholder="name@example.com" required>
+          </div>
+          <div class="form-group">
+            <label for="auth-password">Password</label>
+            <input type="password" id="auth-password" placeholder="At least 6 characters" required>
+          </div>
+          <button type="submit" class="btn-auth-submit" id="btn-auth-submit">Log In</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- My Repositories Modal -->
+    <div id="repos-modal" class="modal-backdrop" hidden>
+      <div class="modal-card" style="max-width: 540px;">
+        <div class="modal-header">
+          <h3 style="color: #fff; font-size: 1.15rem;">My Cloud Repositories</h3>
+          <button type="button" class="modal-close" id="btn-close-repos">&times;</button>
+        </div>
+        <div id="my-repos-list"
+          style="max-height: 50vh; overflow-y: auto; margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+        </div>
+      </div>
+    </div>
+
+    <header>
+
+      <h1>Codebase Intelligence</h1>
+      <p class="subtitle">Understand any GitHub repository in plain English. Discover what each file does, how files
+        connect, and inspect the route from the entry point.</p>
+
+      <div class="search-card">
+        <form id="repo-form">
+          <div class="input-wrapper">
+            <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path
+                d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+              </path>
+            </svg>
+            <input id="url" type="url" placeholder="https://github.com/owner/repository"
+              value="https://github.com/fastapi/fastapi" required>
+          </div>
+          <button id="submit-btn" type="submit">
+            <span>Analyze</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+        <div
+          style="display: flex; align-items: center; justify-content: center; gap: 0.6rem; margin-top: 0.85rem; flex-wrap: wrap;">
+          <span style="font-size: 0.8rem; color: var(--text-dim); font-weight: 600;">Try instant demo:</span>
+          <button type="button" id="chip-demo"
+            style="background: rgba(99, 102, 241, 0.15); border: 1px solid rgba(99, 102, 241, 0.35); color: #a5b4fc; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.8rem; cursor: pointer; font-weight: 600; font-family: var(--font-sans); transition: all 0.15s;">
+            ⚡ CodeLens Core Architecture (3 files)
+          </button>
+        </div>
+      </div>
+
+      <div id="status-container">
+        <div id="status-badge" class="status-badge" hidden>
+          <span class="spinner" id="status-spinner" hidden></span>
+          <span id="status-text">Ready</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace" id="workspace" hidden>
+      <!-- Left: File List -->
+      <aside class="file-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <span>Files</span>
+            <span class="count-pill" id="file-count">0</span>
+          </div>
+        </div>
+        <input type="text" id="file-filter" class="filter-input" placeholder="Filter files by name or path...">
+        <ul id="file-list" class="file-list"></ul>
+      </aside>
+
+      <!-- Right: Details Area -->
+      <main class="details-panel" id="details-panel">
+        <!-- State 0: No file selected -->
+        <div class="empty-state" id="state-empty">
+          <div class="empty-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+          </div>
+          <div>
+            <h3 style="color: #fff; font-size: 1.15rem; margin-bottom: 0.35rem;">Select a file to begin</h3>
+            <p style="font-size: 0.9rem;">Click any file from the explorer on the left to inspect its role and
+              architecture.</p>
+          </div>
+        </div>
+
+        <!-- State 1: File clicked -> shows file name and "Show details" button (Main Flow Step 4) -->
+        <div class="selection-preview" id="state-selected" hidden>
+          <div class="preview-badge" id="preview-lang-pill">python</div>
+          <h2 class="preview-filename" id="preview-filename">app.py</h2>
+          <div class="preview-path" id="preview-path">src/app.py</div>
+          <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 480px;">
+            Click below to generate the plain-English summary, incoming and outgoing route graph, and key code parts.
+          </p>
+          <button class="btn-show-details" id="btn-show-details">
+            <span>Show details</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- State 2: Full Details View (Main Flow Step 5) -->
+        <div class="file-details-view" id="state-details" hidden>
+          <div class="details-top">
+            <div class="details-title-group">
+              <h2 id="view-filename">main.py</h2>
+              <div class="details-path-copy" id="view-path">app/main.py</div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <span class="lang-pill" id="view-lang">PYTHON</span>
+              <span class="count-pill" id="view-size">2.4 KB</span>
+            </div>
+          </div>
+
+          <!-- Summary Card -->
+          <div class="summary-card">
+            <div class="card-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polygon
+                  points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                </polygon>
+              </svg>
+              Summary of what the file does
+            </div>
+            <p class="summary-text" id="view-summary">Loading summary...</p>
+          </div>
+
+          <!-- How the File is Routed -->
+          <div class="route-banner">
+            <div class="card-label" style="color: var(--accent-cyan);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
+              How the file is routed
+            </div>
+            <div class="chain-container" id="view-route-chain"></div>
+            <p class="route-explanation" id="view-route-explanation"></p>
+          </div>
+
+          <!-- Routes to and from other files -->
+          <div class="deps-grid">
+            <!-- Outgoing Routes -->
+            <div class="dep-block">
+              <div class="dep-title">
+                <span>Routes to other files (Outgoing)</span>
+                <span class="count-pill" id="view-outgoing-count">0</span>
+              </div>
+              <ul class="dep-list" id="view-outgoing-list"></ul>
+            </div>
+
+            <!-- Incoming Routes -->
+            <div class="dep-block">
+              <div class="dep-title">
+                <span>Routed by other files (Incoming)</span>
+                <span class="count-pill" id="view-incoming-count">0</span>
+              </div>
+              <ul class="dep-list" id="view-incoming-list"></ul>
+            </div>
+          </div>
+
+          <!-- External Dependencies -->
+          <div class="dep-block" id="ext-deps-block">
+            <div class="dep-title">
+              <span>External Dependencies</span>
+              <span class="count-pill" id="view-ext-count">0</span>
+            </div>
+            <div class="external-badge-group" id="view-ext-list"></div>
+          </div>
+
+          <!-- Key Parts -->
+          <div class="parts-section">
+            <div class="dep-title" style="margin-bottom: 0.5rem;">
+              <span>Key Parts of the File</span>
+              <span class="count-pill" id="view-parts-count">0</span>
+            </div>
+            <table class="parts-table">
+              <thead>
+                <tr>
+                  <th>Component</th>
+                  <th>Kind</th>
+                  <th>Lines</th>
+                  <th>Referenced By</th>
+                </tr>
+              </thead>
+              <tbody id="view-parts-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('repo-form');
+    const urlInput = document.getElementById('url');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusBadge = document.getElementById('status-badge');
+    const statusText = document.getElementById('status-text');
+    const statusSpinner = document.getElementById('status-spinner');
+
+    const workspace = document.getElementById('workspace');
+    const fileListEl = document.getElementById('file-list');
+    const fileFilter = document.getElementById('file-filter');
+    const fileCountEl = document.getElementById('file-count');
+
+    const stateEmpty = document.getElementById('state-empty');
+    const stateSelected = document.getElementById('state-selected');
+    const stateDetails = document.getElementById('state-details');
+
+    const previewFilename = document.getElementById('preview-filename');
+    const previewPath = document.getElementById('preview-path');
+    const previewLangPill = document.getElementById('preview-lang-pill');
+    const btnShowDetails = document.getElementById('btn-show-details');
+
+    const viewFilename = document.getElementById('view-filename');
+    const viewPath = document.getElementById('view-path');
+    const viewLang = document.getElementById('view-lang');
+    const viewSize = document.getElementById('view-size');
+    const viewSummary = document.getElementById('view-summary');
+    const viewRouteChain = document.getElementById('view-route-chain');
+    const viewRouteExplanation = document.getElementById('view-route-explanation');
+    const viewOutgoingList = document.getElementById('view-outgoing-list');
+    const viewIncomingList = document.getElementById('view-incoming-list');
+    const viewOutgoingCount = document.getElementById('view-outgoing-count');
+    const viewIncomingCount = document.getElementById('view-incoming-count');
+    const viewExtList = document.getElementById('view-ext-list');
+    const viewExtCount = document.getElementById('view-ext-count');
+    const viewPartsBody = document.getElementById('view-parts-body');
+    const viewPartsCount = document.getElementById('view-parts-count');
+
+    let currentRepoId = null;
+    let allFiles = [];
+    let selectedFilePath = null;
+    let authToken = localStorage.getItem('codelens_token');
+    let currentUser = null;
+    let authMode = 'login'; // 'login' or 'signup'
+
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const encodePath = p => p.split('/').map(encodeURIComponent).join('/');
+
+    function getAuthHeaders() {
+      const headers = { 'Content-Type': 'application/json' };
+      if (authToken) {
+        headers['Authorization'] = 'Bearer ' + authToken;
+      }
+      return headers;
+    }
+
+    function setStatus(text, type = 'normal') {
+      statusBadge.hidden = false;
+      statusBadge.className = 'status-badge ' + type;
+      statusText.textContent = text;
+      statusSpinner.hidden = type !== 'loading';
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = urlInput.value.trim();
+      if (!url) return;
+
+      submitBtn.disabled = true;
+      workspace.hidden = true;
+      setStatus('Submitting repository URL...', 'loading');
+
+      try {
+        const resp = await fetch('/repos', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify({ url })
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          setStatus('Error: ' + (data.detail || JSON.stringify(data)), 'error');
+          submitBtn.disabled = false;
+          return;
+        }
+
+        currentRepoId = data.id;
+        if (data.status === 'done') {
+          setStatus(`${data.name || url} (Loaded from Cloud) • ${data.file_count || ''} source files`, 'success');
+          await loadFiles(data.id);
+        } else {
+          await pollRepo(data.id);
+        }
+      } catch (err) {
+        setStatus('Network or connection error: ' + err.message, 'error');
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    async function pollRepo(repoId) {
+      while (true) {
+        try {
+          const resp = await fetch(`/repos/${repoId}`);
+          const repo = await resp.json();
+          if (repo.status === 'failed') {
+            setStatus('Analysis Failed: ' + repo.error, 'error');
+            return;
+          }
+          if (repo.status === 'done') {
+            setStatus(`${repo.name} • ${repo.file_count} source files analyzed`, 'success');
+            await loadFiles(repoId);
+            return;
+          }
+          setStatus(`Status: ${repo.status}...`, 'loading');
+        } catch (err) {
+          setStatus('Polling error: ' + err.message, 'error');
+          return;
+        }
+        await sleep(1000);
+      }
+    }
+
+    async function loadFiles(repoId) {
+      const resp = await fetch(`/repos/${repoId}/files`);
+      allFiles = await resp.json();
+      fileCountEl.textContent = allFiles.length;
+      workspace.hidden = false;
+      renderFileList(allFiles);
+      showState('empty');
+    }
+
+    function renderFileList(files) {
+      fileListEl.replaceChildren();
+      if (files.length === 0) {
+        const li = document.createElement('li');
+        li.style.color = 'var(--text-dim)';
+        li.style.padding = '1rem';
+        li.textContent = 'No matching source files found.';
+        fileListEl.appendChild(li);
+        return;
+      }
+
+      files.forEach(f => {
+        const li = document.createElement('li');
+        li.className = 'file-row' + (f.path === selectedFilePath ? ' active' : '');
+        li.dataset.path = f.path;
+
+        const langClass = (f.language || 'other').toLowerCase();
+        li.innerHTML = `
+          <span class="lang-pill ${langClass}">${f.language ? f.language.slice(0, 3) : 'SRC'}</span>
+          <div class="file-meta">
+            <div class="file-name">${f.name || f.path.split('/').pop()}</div>
+            <div class="file-path">${f.path}</div>
+          </div>
+        `;
+
+        li.addEventListener('click', () => {
+          selectFile(f);
+        });
+
+        fileListEl.appendChild(li);
+      });
+    }
+
+    fileFilter.addEventListener('input', () => {
+      const q = fileFilter.value.trim().toLowerCase();
+      const filtered = allFiles.filter(f => f.path.toLowerCase().includes(q) || (f.name && f.name.toLowerCase().includes(q)));
+      fileCountEl.textContent = filtered.length;
+      renderFileList(filtered);
+    });
+
+    function showState(st) {
+      stateEmpty.hidden = st !== 'empty';
+      stateSelected.hidden = st !== 'selected';
+      stateDetails.hidden = st !== 'details';
+    }
+
+    // Step 4: Clicking a file selects it and displays the file name & "Show details" button
+    function selectFile(file) {
+      selectedFilePath = file.path;
+      document.querySelectorAll('.file-row').forEach(el => {
+        el.classList.toggle('active', el.dataset.path === file.path);
+      });
+
+      previewFilename.textContent = file.name || file.path.split('/').pop();
+      previewPath.textContent = file.path;
+      previewLangPill.textContent = file.language || 'source';
+      previewLangPill.className = 'preview-badge lang-pill ' + (file.language || '').toLowerCase();
+
+      showState('selected');
+    }
+
+    // Step 5: Clicking "Show details" fetches full architecture intelligence
+    btnShowDetails.addEventListener('click', async () => {
+      if (!selectedFilePath || !currentRepoId) return;
+      await fetchAndRenderDetails(currentRepoId, selectedFilePath);
+    });
+
+    async function fetchAndRenderDetails(repoId, path) {
+      btnShowDetails.disabled = true;
+      btnShowDetails.textContent = 'Analyzing details...';
+
+      try {
+        const resp = await fetch(`/repos/${repoId}/files/${encodePath(path)}/details`);
+        if (!resp.ok) {
+          const errText = await resp.text();
+          let msg = 'Unknown error';
+          try {
+            const errJson = JSON.parse(errText);
+            msg = errJson.detail || errText;
+          } catch (_) {
+            msg = errText;
+          }
+          alert('Could not load file details: ' + msg);
+          return;
+        }
+        const data = await resp.json();
+
+        viewFilename.textContent = data.name;
+        viewPath.textContent = data.path;
+        viewLang.textContent = (data.language || 'UNKNOWN').toUpperCase();
+        viewLang.className = 'lang-pill ' + (data.language || '').toLowerCase();
+        viewSize.textContent = formatSize(data.size);
+        viewSummary.textContent = data.summary || 'Summary not determined.';
+
+        // Route Chain
+        viewRouteChain.replaceChildren();
+        const chain = (data.how_routed && data.how_routed.chain) || [];
+        if (chain.length > 0) {
+          chain.forEach((p, idx) => {
+            const span = document.createElement('span');
+            span.className = 'chain-node' + (p === data.path ? ' target' : '');
+            span.textContent = p;
+            viewRouteChain.appendChild(span);
+            if (idx < chain.length - 1) {
+              const arrow = document.createElement('span');
+              arrow.className = 'chain-arrow';
+              arrow.textContent = '→';
+              viewRouteChain.appendChild(arrow);
+            }
+          });
+        } else {
+          const span = document.createElement('span');
+          span.className = 'chain-node';
+          span.textContent = data.path;
+          viewRouteChain.appendChild(span);
+        }
+        viewRouteExplanation.textContent = (data.how_routed && data.how_routed.explanation) || 'Route not determined.';
+
+        // Outgoing Routes
+        viewOutgoingList.replaceChildren();
+        const outgoing = data.outgoing_routes || [];
+        viewOutgoingCount.textContent = outgoing.length;
+        if (outgoing.length === 0) {
+          viewOutgoingList.innerHTML = '<li class="dep-empty">No outgoing repository connections.</li>';
+        } else {
+          outgoing.forEach(route => {
+            const li = document.createElement('li');
+            li.className = 'dep-item';
+            const symStr = route.symbols.length ? 'uses: ' + route.symbols.join(', ') : 'file imported';
+            li.innerHTML = `
+              <span class="dep-item-path">${route.path}</span>
+              <span class="dep-item-symbols">${symStr}</span>
+            `;
+            li.addEventListener('click', () => {
+              const target = allFiles.find(f => f.path === route.path);
+              if (target) selectFile(target);
+            });
+            viewOutgoingList.appendChild(li);
+          });
+        }
+
+        // Incoming Routes
+        viewIncomingList.replaceChildren();
+        const incoming = data.incoming_routes || [];
+        viewIncomingCount.textContent = incoming.length;
+        if (incoming.length === 0) {
+          viewIncomingList.innerHTML = '<li class="dep-empty">No incoming connections from other files.</li>';
+        } else {
+          incoming.forEach(route => {
+            const li = document.createElement('li');
+            li.className = 'dep-item';
+            const symStr = route.symbols.length ? 'uses: ' + route.symbols.join(', ') : 'file imported';
+            li.innerHTML = `
+              <span class="dep-item-path">${route.path}</span>
+              <span class="dep-item-symbols">${symStr}</span>
+            `;
+            li.addEventListener('click', () => {
+              const target = allFiles.find(f => f.path === route.path);
+              if (target) selectFile(target);
+            });
+            viewIncomingList.appendChild(li);
+          });
+        }
+
+        // External Dependencies
+        viewExtList.replaceChildren();
+        const ext = data.external_dependencies || [];
+        viewExtCount.textContent = ext.length;
+        if (ext.length === 0) {
+          viewExtList.innerHTML = '<span class="dep-empty">No external dependencies.</span>';
+        } else {
+          ext.forEach(lib => {
+            const badge = document.createElement('span');
+            badge.className = 'ext-badge';
+            badge.textContent = lib;
+            viewExtList.appendChild(badge);
+          });
+        }
+
+        // Key Parts Table
+        viewPartsBody.replaceChildren();
+        const parts = data.key_parts || [];
+        viewPartsCount.textContent = parts.length;
+        if (parts.length === 0) {
+          const tr = document.createElement('tr');
+          tr.innerHTML = '<td colspan="4" style="text-align: center; color: var(--text-dim); padding: 1rem;">No functions, classes, or methods detected.</td>';
+          viewPartsBody.appendChild(tr);
+        } else {
+          parts.forEach(p => {
+            const tr = document.createElement('tr');
+            const calledBy = p.called_by || [];
+            const callBadge = calledBy.length
+              ? `<span class="usage-pill">Used by ${calledBy.length} file${calledBy.length > 1 ? 's' : ''} (${calledBy[0]})</span>`
+              : `<span class="usage-pill internal">Internal</span>`;
+
+            tr.innerHTML = `
+              <td class="sym-name">${p.name}</td>
+              <td><span class="kind-pill ${p.kind}">${p.kind}</span></td>
+              <td class="line-tag">L${p.start_line}&ndash;L${p.end_line}</td>
+              <td>${callBadge}</td>
+            `;
+            viewPartsBody.appendChild(tr);
+          });
+        }
+
+        showState('details');
+      } catch (err) {
+        alert('Error fetching details: ' + err.message);
+      } finally {
+        btnShowDetails.disabled = false;
+        btnShowDetails.innerHTML = `<span>Show details</span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>`;
+      }
+    }
+
+    // --- Authentication UI Handlers ---
+    const authModal = document.getElementById('auth-modal');
+    const reposModal = document.getElementById('repos-modal');
+    const btnOpenAuth = document.getElementById('btn-open-auth');
+    const btnCloseAuth = document.getElementById('btn-close-auth');
+    const btnCloseRepos = document.getElementById('btn-close-repos');
+    const tabLogin = document.getElementById('tab-login');
+    const tabSignup = document.getElementById('tab-signup');
+    const authForm = document.getElementById('auth-form');
+    const authEmail = document.getElementById('auth-email');
+    const authPassword = document.getElementById('auth-password');
+    const authSubmit = document.getElementById('btn-auth-submit');
+    const authError = document.getElementById('auth-error');
+    const authNavGuest = document.getElementById('auth-nav-guest');
+    const authNavUser = document.getElementById('auth-nav-user');
+    const userEmailDisplay = document.getElementById('user-email-display');
+    const btnLogout = document.getElementById('btn-logout');
+    const btnMyRepos = document.getElementById('btn-my-repos');
+    const myReposList = document.getElementById('my-repos-list');
+
+    btnOpenAuth.addEventListener('click', () => {
+      authModal.hidden = false;
+      authError.hidden = true;
+    });
+
+    btnCloseAuth.addEventListener('click', () => {
+      authModal.hidden = true;
+    });
+
+    btnCloseRepos.addEventListener('click', () => {
+      reposModal.hidden = true;
+    });
+
+    tabLogin.addEventListener('click', () => {
+      authMode = 'login';
+      tabLogin.classList.add('active');
+      tabSignup.classList.remove('active');
+      authSubmit.textContent = 'Log In';
+      authError.hidden = true;
+    });
+
+    tabSignup.addEventListener('click', () => {
+      authMode = 'signup';
+      tabSignup.classList.add('active');
+      tabLogin.classList.remove('active');
+      authSubmit.textContent = 'Create Account';
+      authError.hidden = true;
+    });
+
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      authError.hidden = true;
+      authSubmit.disabled = true;
+
+      const endpoint = authMode === 'signup' ? '/auth/signup' : '/auth/login';
+      try {
+        const resp = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: authEmail.value.trim(),
+            password: authPassword.value,
+          }),
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          authError.textContent = data.detail || 'Authentication failed';
+          authError.hidden = false;
+          return;
+        }
+
+        authToken = data.token;
+        localStorage.setItem('codelens_token', authToken);
+        currentUser = data.user;
+        updateUserNav(currentUser);
+        authModal.hidden = true;
+        authForm.reset();
+      } catch (err) {
+        authError.textContent = 'Network error: ' + err.message;
+        authError.hidden = false;
+      } finally {
+        authSubmit.disabled = false;
+      }
+    });
+
+    btnLogout.addEventListener('click', () => {
+      authToken = null;
+      currentUser = null;
+      localStorage.removeItem('codelens_token');
+      updateUserNav(null);
+    });
+
+    btnMyRepos.addEventListener('click', async () => {
+      if (!authToken) return;
+      reposModal.hidden = false;
+      myReposList.innerHTML = '<div style="color: var(--text-dim); padding: 1rem;">Loading your repositories...</div>';
+
+      try {
+        const resp = await fetch('/repos/my-repos', {
+          headers: getAuthHeaders(),
+        });
+        const repos = await resp.json();
+        myReposList.replaceChildren();
+
+        if (repos.length === 0) {
+          myReposList.innerHTML = '<div style="color: var(--text-dim); padding: 1rem;">No repositories analyzed yet. Submit a repository to analyze!</div>';
+          return;
+        }
+
+        repos.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'file-row';
+          item.style.justifyContent = 'space-between';
+          item.innerHTML = `
+            <div>
+              <div style="font-weight: 700; color: #fff;">${r.name}</div>
+              <div style="font-size: 0.75rem; color: var(--text-dim);">${new Date(r.created_at).toLocaleString()}</div>
+            </div>
+            <span class="count-pill">${r.file_count || 0} files</span>
+          `;
+          item.addEventListener('click', async () => {
+            reposModal.hidden = true;
+            currentRepoId = r.id;
+            urlInput.value = r.source_url || `https://github.com/${r.name}`;
+            setStatus(`${r.name} (Loaded from Cloud) • ${r.file_count || 0} source files`, 'success');
+            await loadFiles(r.id);
+          });
+          myReposList.appendChild(item);
+        });
+      } catch (err) {
+        myReposList.innerHTML = '<div style="color: var(--accent-rose); padding: 1rem;">Error loading repositories: ' + err.message + '</div>';
+      }
+    });
+
+    function updateUserNav(user) {
+      if (user) {
+        authNavGuest.style.display = 'none';
+        authNavUser.style.display = 'flex';
+        userEmailDisplay.textContent = user.email;
+      } else {
+        authNavGuest.style.display = 'block';
+        authNavUser.style.display = 'none';
+      }
+    }
+
+    async function checkCurrentSession() {
+      if (!authToken) {
+        updateUserNav(null);
+        return;
+      }
+      try {
+        const resp = await fetch('/auth/me', { headers: getAuthHeaders() });
+        if (resp.ok) {
+          currentUser = await resp.json();
+          updateUserNav(currentUser);
+        } else {
+          localStorage.removeItem('codelens_token');
+          authToken = null;
+          updateUserNav(null);
+        }
+      } catch (e) {
+        updateUserNav(null);
+      }
+    }
+
+    // Quick demo and URL parameters support
+    const chipDemo = document.getElementById('chip-demo');
+    if (chipDemo) {
+      chipDemo.addEventListener('click', async () => {
+        const demoRepoId = 'cd611237f87246da80aa4ff3207889bc';
+        currentRepoId = demoRepoId;
+        setStatus('CodeLens Core Architecture • 3 source files loaded', 'success');
+        await loadFiles(demoRepoId);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await checkCurrentSession();
+      const params = new URLSearchParams(window.location.search);
+      const repoId = params.get('repo') || params.get('id');
+      if (repoId) {
+        currentRepoId = repoId;
+        setStatus('Loading repository files...', 'loading');
+        await loadFiles(repoId);
+      }
+    });
+  </script>
+</body>
+
+</html>
